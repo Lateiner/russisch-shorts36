@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch lernen: Du oder Sie?</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h2 {
+            color: #333;
+            font-size: 1.4rem;
+            margin-top: 0;
+        }
+
+        p.instruction {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+        }
+
+        /* Swipe-Bereich */
+        .card-stack {
+            position: relative;
+            width: 100%;
+            height: 240px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .situation-card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #eef2f3;
+            border: 2px solid #ccc;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.15rem;
+            font-weight: bold;
+            color: #2c3e50;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+
+        .situation-card:active {
+            cursor: grabbing;
+        }
+
+        /* Indikatoren auf den Karten beim Swipen */
+        .indicator {
+            position: absolute;
+            top: 15px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            opacity: 0;
+        }
+        .indicator.left {
+            left: 15px;
+            border: 2px solid #dc3545;
+            color: #dc3545;
+        }
+        .indicator.right {
+            right: 15px;
+            border: 2px solid #28a745;
+            color: #28a745;
+        }
+
+        /* Buttons für Desktop-Nutzer und Barrierefreiheit */
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .btn-choice {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            transition: background 0.2s;
+        }
+
+        .btn-left {
+            background-color: #dc3545;
+        }
+        .btn-left:hover { background-color: #bd2130; }
+
+        .btn-right {
+            background-color: #28a745;
+        }
+        .btn-right:hover { background-color: #218838; }
+
+        /* Ergebnis-Anzeige */
+        .score-display {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+            margin-top: 10px;
+        }
+
+        .btn-reset {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            font-size: 0.9rem;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Du oder Sie? (Swipe-Game)</h2>
+    <p class="instruction">Wische nach links für „Что ты несёшь?“ (Du) oder nach rechts für „Что вы несёте?“ (Sie/Plural). Alternativ klicke die Buttons.</p>
+
+    <div class="card-stack" id="card-stack">
+        <!-- Die Karten werden dynamisch via JavaScript generiert -->
+    </div>
+
+    <div class="action-buttons">
+        <button class="btn-choice btn-left" id="btn-left">◀ Что ты несёшь?</button>
+        <button class="btn-choice btn-right" id="btn-right">Что вы несёте? ▶</button>
+    </div>
+
+    <div class="score-display" id="score-display">Karte: 1 / 4</div>
+    <button class="btn-reset" id="btn-reset">Neustart</button>
+</div>
+
+<script>
+    // 4 typische Situationen basierend auf der Anleitung
+    const situations = [
+        { text: "Ein enger Freund erzählt dir beim Abendessen eine völlig unlogische Geschichte.", correct: "left" },
+        { text: "Der Chef sagt in einer offiziellen Konferenz etwas komplett Verrücktes.", correct: "right" },
+        { text: "Zwei fremde Passanten auf der Straße rufen laut verurteilende, falsche Dinge.", correct: "right" },
+        { text: "Dein kleiner Bruder behauptet steif und fest, die Erde sei eine Scheibe.", correct: "left" }
+    ];
+
+    let currentIndex = 0;
+    let score = 0;
+    const stack = document.getElementById('card-stack');
+    const scoreDisplay = document.getElementById('score-display');
+    const resetBtn = document.getElementById('btn-reset');
+
+    function loadCard() {
+        stack.innerHTML = "";
+        if (currentIndex >= situations.length) {
+            stack.innerHTML = `<div style="font-size: 1.2rem; font-weight: bold; color: #28a745;">Fertig! 🎉<br>Ergebnis: ${score} von ${situations.length} richtig.</div>`;
+            scoreDisplay.textContent = "Spiel beendet";
+            document.querySelector('.action-buttons').style.display = 'none';
+            resetBtn.style.display = 'block';
+            return;
+        }
+
+        document.querySelector('.action-buttons').style.display = 'flex';
+        resetBtn.style.display = 'none';
+        scoreDisplay.textContent = `Karte: ${currentIndex + 1} / ${situations.length}`;
+
+        const card = document.createElement('div');
+        card.className = 'situation-card';
+        card.innerHTML = `
+            <div class="indicator left">Ты (Links)</div>
+            ${situations[currentIndex].text}
+            <div class="indicator right">Вы (Rechts)</div>
+        `;
+        stack.appendChild(card);
+        initDragAndTouch(card);
+    }
+
+    function handleChoice(direction) {
+        const card = stack.querySelector('.situation-card');
+        if (!card) return;
+
+        if (direction === situations[currentIndex].correct) {
+            score++;
+            card.style.backgroundColor = '#d4edda';
+        } else {
+            card.style.backgroundColor = '#f8d7da';
+        }
+
+        const moveOutX = direction === 'left' ? -500 : 500;
+        card.style.transform = `translateX(${moveOutX}px) rotate(${direction === 'left' ? -20 : 20}deg)`;
+        card.style.opacity = '0';
+
+        setTimeout(() => {
+            currentIndex++;
+            loadCard();
+        }, 300);
+    }
+
+    // Buttons für Klick-Bedienung
+    document.getElementById('btn-left').addEventListener('click', () => handleChoice('left'));
+    document.getElementById('btn-right').addEventListener('click', () => handleChoice('right'));
+
+    // Drag- & Touch-Logik für flüssiges Swipen
+    function initDragAndTouch(card) {
+        let startX = 0;
+        let currentX = 0;
+        let isDragging = false;
+        const indLeft = card.querySelector('.indicator.left');
+        const indRight = card.querySelector('.indicator.right');
+
+        function start(e) {
+            isDragging = true;
+            startX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+        }
+
+        function move(e) {
+            if (!isDragging) return;
+            currentX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const diffX = currentX - startX;
+            const rotation = diffX / 15;
+            card.style.transform = `translateX(${diffX}px) rotate(${rotation}deg)`;
+
+            // Indikatoren einblenden beim Ziehen
+            if (diffX < 0) {
+                indLeft.style.opacity = Math.min(-diffX / 100, 1);
+                indRight.style.opacity = 0;
+            } else {
+                indRight.style.opacity = Math.min(diffX / 100, 1);
+                indLeft.style.opacity = 0;
+            }
+        }
+
+        function end() {
+            if (!isDragging) return;
+            isDragging = false;
+            const diffX = currentX - startX;
+
+            if (diffX < -120) {
+                handleChoice('left');
+            } else if (diffX > 120) {
+                handleChoice('right');
+            } else {
+                // Zurückfedern, falls nicht weit genug gewischt wurde
+                card.style.transform = 'translateX(0px) rotate(0deg)';
+                indLeft.style.opacity = 0;
+                indRight.style.opacity = 0;
+            }
+        }
+
+        // Event-Listener für Maus und Touch registrieren
+        card.addEventListener('mousedown', start);
+        document.addEventListener('mousemove', move);
+        document.addEventListener('mouseup', end);
+
+        card.addEventListener('touchstart', start, { passive: true });
+        card.addEventListener('touchmove', move, { passive: true });
+        card.addEventListener('touchend', end);
+    }
+
+    // Neustart
+    resetBtn.addEventListener('click', () => {
+        currentIndex = 0;
+        score = 0;
+        loadCard();
+    });
+
+    // Initialisierung beim Start
+    loadCard();
+</script>
+
+</body>
+</html>
