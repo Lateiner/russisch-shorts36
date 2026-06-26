@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch lernen: Text-Detektiv</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .badge {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        h2 {
+            color: #333;
+            font-size: 1.4rem;
+            margin: 0 0 10px 0;
+        }
+
+        p.instruction {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+
+        /* Der interaktive Textbereich */
+        .text-detective-box {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 25px;
+            font-size: 1.25rem;
+            line-height: 2.2;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            user-select: none;
+        }
+
+        /* Klickbare Phrasen */
+        .word-token {
+            display: inline-block;
+            padding: 0 6px;
+            margin: 0 2px;
+            border-radius: 4px;
+            background-color: #eef2f3;
+            border-bottom: 2px solid #b0bec5;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .word-token:hover {
+            background-color: #cfd8dc;
+        }
+
+        /* Zustand: Ausgewählt durch den Schüler */
+        .word-token.selected {
+            background-color: #ffe082;
+            border-bottom-color: #ffb300;
+            color: #000;
+        }
+
+        /* Zustand nach der Überprüfung */
+        .word-token.correct-found {
+            background-color: #c8e6c9 !important;
+            border-bottom-color: #4caf50 !important;
+            color: #1b5e20;
+            font-weight: bold;
+        }
+
+        .word-token.wrong-selected {
+            background-color: #ffcdd2 !important;
+            border-bottom-color: #f44336 !important;
+            color: #b71c1c;
+        }
+
+        .word-token.missed {
+            border: 2px dashed #ff9800;
+            background-color: transparent;
+        }
+
+        /* Feedback und Auswertung */
+        .feedback-box {
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            display: none;
+            background-color: #e8f5e9;
+            border-left: 4px solid #28a745;
+            color: #2e7d32;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-weight: bold;
+        }
+
+        .btn-check { background-color: #007bff; }
+        .btn-check:hover { background-color: #0056b3; }
+        
+        .btn-reset { background-color: #6c757d; display: none; }
+        .btn-reset:hover { background-color: #5a6268; }
+
+        /* Responsive Anpassungen */
+        @media (max-width: 480px) {
+            .container { padding: 20px; }
+            .text-detective-box {
+                font-size: 1.05rem;
+                padding: 15px;
+                line-height: 2.4;
+            }
+            .word-token {
+                padding: 2px 5px;
+                margin: 3px 1px; /* Mehr Abstand für dicke Finger auf dem Display */
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="badge">Text-Detektiv</div>
+    <h2>Finde die Erklärungen im Text</h2>
+    <p class="instruction">Klicke oder tippe im russischen Text alle <strong>3 Ausdrücke</strong> an, die beschreiben, was eine Person sagt, wenn man zu ihr „Что ты несёшь?“ sagt.</p>
+
+    <div class="text-detective-box" id="text-box">
+        Мы говорим „Что ты несёшь?“, когда человек говорит 
+        <span class="word-token" data-correct="true">странные вещи</span>, 
+        или когда он произносит 
+        <span class="word-token" data-correct="true">глупые вещи</span>. 
+        Мы также используем эту фразу, если человек говорит 
+        <span class="word-token" data-correct="true">то, с чем мы не согласны</span>, 
+        вместо того чтобы выражать нормальные мысли.
+    </div>
+
+    <div class="feedback-box" id="feedback">
+        <strong>Ausgezeichnet!</strong> Du hast die Erklärungen aus dem Video erfolgreich detektiert: 
+        <br>1. странные вещи (seltsame Dinge)
+        <br>2. глупые вещи (dumme Dinge)
+        <br>3. то, с чем мы не согласны (das, womit wir nicht einverstanden sind)
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-check" id="btn-check">Überprüfen</button>
+        <button class="btn btn-reset" id="btn-reset">Neustart</button>
+    </div>
+</div>
+
+<script>
+    const tokens = document.querySelectorAll('.word-token');
+    const btnCheck = document.getElementById('btn-check');
+    const btnReset = document.getElementById('btn-reset');
+    const feedback = document.getElementById('feedback');
+
+    // Auswahl-Logik beim Klicken / Tippen
+    tokens.forEach(token => {
+        token.addEventListener('click', () => {
+            // Wenn bereits überprüft wurde, Klicks ignorieren
+            if (btnCheck.style.display === 'none' && btnReset.style.display === 'block') return;
+            
+            token.classList.toggle('selected');
+        });
+    });
+
+    // Auswertung
+    btnCheck.addEventListener('click', () => {
+        let correctCount = 0;
+        let totalCorrectAnswers = 3;
+
+        tokens.forEach(token => {
+            const isCorrectAnswer = token.getAttribute('data-correct') === 'true';
+            const isSelected = token.classList.contains('selected');
+
+            if (isSelected && isCorrectAnswer) {
+                token.classList.remove('selected');
+                token.classList.add('correct-found');
+                correctCount++;
+            } else if (isSelected && !isCorrectAnswer) {
+                token.classList.remove('selected');
+                token.classList.add('wrong-selected');
+            } else if (!isSelected && isCorrectAnswer) {
+                token.classList.add('missed'); // Vergessene richtige Antworten markieren
+            }
+        });
+
+        // Feedback anzeigen
+        feedback.style.display = 'block';
+        if (correctCount === totalCorrectAnswers) {
+            feedback.innerHTML = `<strong>Perfekt gelöst! 🎉</strong> Du hast alle 3 Beschreibungen aus dem Video wiedererkannt.`;
+        } else {
+            feedback.style.backgroundColor = '#fff3cd';
+            feedback.style.borderLeftColor = '#ffc107';
+            feedback.style.color = '#664d03';
+            feedback.innerHTML = `<strong>Du hast ${correctCount} von 3 Erklärungen gefunden.</strong> Die fehlenden Phrasen wurden orange umrandet, falsche Auswahlen wurden rot markiert.`;
+        }
+
+        btnCheck.style.display = 'none';
+        btnReset.style.display = 'block';
+    });
+
+    // Neustart
+    btnReset.addEventListener('click', () => {
+        tokens.forEach(token => {
+            token.className = 'word-token';
+        });
+        feedback.style.display = 'none';
+        btnCheck.style.display = 'block';
+        btnReset.style.display = 'none';
+    });
+</script>
+
+</body>
+</html>
