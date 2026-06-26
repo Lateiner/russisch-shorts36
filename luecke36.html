@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch lernen: Lückentext mit Dropdown</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .badge {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        h2 {
+            color: #333;
+            font-size: 1.4rem;
+            margin: 0 0 15px 0;
+        }
+
+        p.instruction {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+
+        /* Der Lückentext-Bereich */
+        .sentence-box {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 25px;
+            font-size: 1.25rem;
+            line-height: 2;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Stil für das Dropdown-Menü */
+        .dropdown-select {
+            font-size: 1.15rem;
+            font-weight: bold;
+            padding: 6px 12px;
+            border: 2px solid #007bff;
+            border-radius: 6px;
+            background-color: white;
+            color: #007bff;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s ease;
+            margin: 0 5px;
+            vertical-align: middle;
+        }
+
+        .dropdown-select:hover {
+            background-color: #f0f7ff;
+        }
+
+        /* Status-Farben für das Dropdown */
+        .dropdown-select.correct {
+            border-color: #28a745;
+            color: #28a745;
+            background-color: #d4edda;
+        }
+
+        .dropdown-select.wrong {
+            border-color: #dc3545;
+            color: #dc3545;
+            background-color: #f8d7da;
+        }
+
+        /* Feedback-Box */
+        .feedback-box {
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback-success {
+            background-color: #e8f5e9;
+            border-left: 4px solid #28a745;
+            color: #2e7d32;
+        }
+
+        .feedback-error {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            color: #664d03;
+        }
+
+        /* Kontroll-Bereich */
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .btn-reset {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: none;
+        }
+
+        .btn-reset:hover {
+            background-color: #5a6268;
+        }
+
+        /* Responsive Anpassungen */
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            .sentence-box {
+                font-size: 1.1rem;
+                padding: 15px;
+                line-height: 2.2;
+                text-align: left;
+            }
+            .dropdown-select {
+                font-size: 1rem;
+                padding: 4px 8px;
+                display: inline-block;
+                margin: 5px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="badge">Der Ursprung</div>
+    <h2>Der Ursprung der Redewendung</h2>
+    <p class="instruction">Weißt du noch, von welchem festen Ausdruck sich die Redewendung ableitet? Wähle das richtige Wort aus, um die Lücke im russischen Satz zu füllen.</p>
+
+    <div class="sentence-box">
+        Выражение „Что ты несёшь?“ происходит от фразы нести 
+        <select class="dropdown-select" id="lücke-select">
+            <option value="" disabled selected>-- bitte wählen --</option>
+            <option value="коробку">коробку</option>
+            <option value="чушь">чушь</option>
+            <option value="сумку">сумку</option>
+        </select>.
+    </div>
+
+    <div class="feedback-box id-feedback-success" id="feedback-success" class="feedback-box feedback-success">
+        <strong>Richtig gelöst!</strong> Der Ausdruck leitet sich direkt von der idiomatischen Wendung „нести чушь“ ab, was übersetzt „Unsinn / Quatsch erzählen“ bedeutet.
+    </div>
+
+    <div class="feedback-box id-feedback-error" id="feedback-error" class="feedback-box feedback-error">
+        <strong>Nicht ganz.</strong> „коробку“ bedeutet Kiste und „сумку“ bedeutet Tasche. Diese passen zwar zum wörtlichen Tragen, aber nicht zum sprachlichen Ursprung der Redewendung. Versuche es noch einmal!
+    </div>
+
+    <div class="controls">
+        <button class="btn-reset" id="btn-reset">Neustart</button>
+    </div>
+</div>
+
+<script>
+    const selectMenu = document.getElementById('lücke-select');
+    const fbSuccess = document.getElementById('feedback-success');
+    const fbError = document.getElementById('feedback-error');
+    const resetBtn = document.getElementById('btn-reset');
+    const correctValue = 'чушь';
+
+    selectMenu.addEventListener('change', () => {
+        const selectedValue = selectMenu.value;
+
+        // Status-Klassen entfernen
+        selectMenu.classList.remove('correct', 'wrong');
+        fbSuccess.style.display = 'none';
+        fbError.style.display = 'none';
+
+        if (selectedValue === correctValue) {
+            selectMenu.classList.add('correct');
+            fbSuccess.style.display = 'block';
+            selectMenu.setAttribute('disabled', 'true'); // Auswahl einfrieren bei Erfolg
+            resetBtn.style.display = 'block';
+        } else {
+            selectMenu.classList.add('wrong');
+            fbError.style.display = 'block';
+            resetBtn.style.display = 'block';
+        }
+    });
+
+    // Neustart-Funktion
+    resetBtn.addEventListener('click', () => {
+        selectMenu.removeAttribute('disabled');
+        selectMenu.classList.remove('correct', 'wrong');
+        selectMenu.value = ""; // Auf Platzhalter zurücksetzen
+        fbSuccess.style.display = 'none';
+        fbError.style.display = 'none';
+        resetBtn.style.display = 'none';
+    });
+</script>
+
+</body>
+</html>
