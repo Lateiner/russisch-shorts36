@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch lernen: Wörtlich vs. Figürlich</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: #333;
+            text-align: center;
+            font-size: 1.5rem;
+            margin-top: 0;
+        }
+
+        p.instruction {
+            color: #666;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        /* Responsive Grid */
+        .game-board {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .drop-zone {
+            background: #fafafa;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        .drop-zone.drag-over {
+            background: #e1f5fe;
+            border-color: #0288d1;
+        }
+
+        .emoji-display {
+            font-size: 4rem;
+            margin-bottom: 5px;
+            user-select: none;
+        }
+
+        .zone-title {
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 15px;
+            user-select: none;
+        }
+
+        /* Kärtchen-Bereich */
+        .card-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            padding: 20px;
+            background: #eef2f3;
+            border-radius: 8px;
+            min-height: 80px;
+        }
+
+        .draggable-card {
+            background: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: grab;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            user-select: none;
+            touch-action: none; /* Wichtig für Mobile-Touch */
+        }
+
+        .draggable-card:active {
+            cursor: grabbing;
+        }
+
+        /* Platzierte Kärtchen im Kasten */
+        .drop-zone .draggable-card {
+            width: 90%;
+            margin-top: 10px;
+            cursor: default;
+        }
+
+        /* Kontroll-Bereich mit Button */
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .btn-reset {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-reset:hover {
+            background-color: #5a6268;
+        }
+
+        /* Responsive Anpassungen */
+        @media (max-width: 600px) {
+            .game-board {
+                grid-template-columns: 1fr;
+            }
+            
+            .drop-zone {
+                min-height: 180px;
+            }
+
+            .draggable-card {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Direkte vs. figürliche Bedeutung</h2>
+    <p class="instruction">Ziehe die russischen Ausdrücke in den richtigen Kasten.</p>
+
+    <div class="game-board">
+        <!-- Kasten A: Wörtlich -->
+        <div class="drop-zone" id="zone-literal" data-correct="card-boxes">
+            <div class="emoji-display">📦🏃‍♂️</div>
+            <div class="zone-title">Direkte / Wörtliche Bedeutung</div>
+        </div>
+
+        <!-- Kasten B: Figürlich -->
+        <div class="drop-zone" id="zone-figurative" data-correct="card-nonsense">
+            <div class="emoji-display">🤦‍♂️💬</div>
+            <div class="zone-title">Figürliche Bedeutung</div>
+        </div>
+    </div>
+
+    <!-- Startbereich der Kärtchen -->
+    <div class="card-container" id="origin-container">
+        <div class="draggable-card" draggable="true" id="card-boxes">нести коробки</div>
+        <div class="draggable-card" draggable="true" id="card-nonsense">нести чушь</div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-reset" id="reset-button">Neustart</button>
+    </div>
+</div>
+
+<script>
+    const cards = document.querySelectorAll('.draggable-card');
+    const zones = document.querySelectorAll('.drop-zone');
+    const originContainer = document.getElementById('origin-container');
+    const resetButton = document.getElementById('reset-button');
+
+    // --- DESKTOP DRAG AND DROP ---
+    cards.forEach(card => {
+        card.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', card.id);
+        });
+    });
+
+    zones.forEach(zone => {
+        zone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            zone.classList.add('drag-over');
+        });
+
+        zone.addEventListener('dragleave', () => {
+            zone.classList.remove('drag-over');
+        });
+
+        zone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            zone.classList.remove('drag-over');
+            const cardId = e.dataTransfer.getData('text/plain');
+            const card = document.getElementById(cardId);
+            
+            if(card && !zone.querySelector('.draggable-card')) {
+                zone.appendChild(card);
+                checkResult(card, zone);
+            }
+        });
+    });
+
+    // --- MOBILE TOUCH SUPPORT ---
+    let activeCard = null;
+
+    cards.forEach(card => {
+        card.addEventListener('touchstart', (e) => {
+            activeCard = card;
+        }, {passive: true});
+
+        card.addEventListener('touchmove', (e) => {
+            if (!activeCard) return;
+            const touch = e.touches[0];
+            activeCard.style.position = 'fixed';
+            activeCard.style.left = `${touch.clientX - activeCard.offsetWidth / 2}px`;
+            activeCard.style.top = `${touch.clientY - activeCard.offsetHeight / 2}px`;
+            activeCard.style.zIndex = '1000';
+        }, {passive: true});
+
+        card.addEventListener('touchend', (e) => {
+            if (!activeCard) return;
+            
+            // Position zurücksetzen für das Einfügen in die Box
+            activeCard.style.position = '';
+            activeCard.style.left = '';
+            activeCard.style.top = '';
+            activeCard.style.zIndex = '';
+
+            const touch = e.changedTouches[0];
+            const targetElement = document.elementFromPoint(touch.clientX, touch.clientY);
+            const zone = targetElement ? targetElement.closest('.drop-zone') : null;
+
+            if (zone && !zone.querySelector('.draggable-card')) {
+                zone.appendChild(activeCard);
+                checkResult(activeCard, zone);
+            } else {
+                // Wenn daneben gedroppt, zurück in den Startbereich
+                originContainer.appendChild(activeCard);
+                activeCard.style.backgroundColor = '#007bff';
+            }
+            activeCard = null;
+        });
+    });
+
+    // --- AUSWERTUNG (Färbung) ---
+    function checkResult(card, zone) {
+        if (zone.getAttribute('data-correct') === card.id) {
+            card.style.backgroundColor = '#28a745'; // Grün bei richtig
+        } else {
+            card.style.backgroundColor = '#dc3545'; // Rot bei falsch
+        }
+    }
+
+    // --- NEUSTART FUNKTION ---
+    resetButton.addEventListener('click', () => {
+        // Karten zurück in den Startbereich schieben
+        cards.forEach(card => {
+            originContainer.appendChild(card);
+            card.style.backgroundColor = '#007bff'; // Standard Blau
+            card.setAttribute('draggable', 'true');
+        });
+        
+        // Rahmen-Färbungen der Zonen zurücksetzen
+        zones.forEach(zone => {
+            zone.classList.remove('drag-over');
+        });
+    });
+</script>
+
+</body>
+</html>
