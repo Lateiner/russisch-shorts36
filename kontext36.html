@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch lernen: Kontext-Check</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .badge {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .progress {
+            float: right;
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        h2 {
+            color: #333;
+            font-size: 1.35rem;
+            margin: 0 0 20px 0;
+            line-height: 1.4;
+            clear: both;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .option-btn {
+            background-color: #fff;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .option-btn:hover:not([disabled]) {
+            border-color: #007bff;
+            background-color: #f8f9fa;
+        }
+
+        .option-btn.correct {
+            background-color: #d4edda !important;
+            border-color: #28a745 !important;
+            color: #155724;
+            font-weight: bold;
+        }
+
+        .option-btn.wrong {
+            background-color: #f8d7da !important;
+            border-color: #dc3545 !important;
+            color: #721c24;
+        }
+
+        .feedback-box {
+            background-color: #e8f5e9;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            font-size: 0.95rem;
+            color: #2e7d32;
+            display: none;
+            line-height: 1.4;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 25px;
+            gap: 15px;
+        }
+
+        .btn-action {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: none;
+        }
+
+        .btn-action:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-reset {
+            background-color: #6c757d;
+        }
+        .btn-reset:hover {
+            background-color: #5a6268;
+        }
+
+        @media (max-width: 480px) {
+            .container { padding: 20px; }
+            h2 { font-size: 1.15rem; }
+            .option-btn { padding: 14px; font-size: 0.95rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="quiz-ui">
+        <span class="progress" id="progress-text">Frage 1 von 4</span>
+        <div class="badge">Sprachstil &amp; Angemessenheit</div>
+        <h2 id="question-text">Frage wird geladen...</h2>
+
+        <div class="options-list" id="options-container">
+            <!-- Dynamische Buttons -->
+        </div>
+
+        <div class="feedback-box" id="feedback-box"></div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-action" id="btn-next">Nächste Frage</button>
+        <button class="btn-action btn-reset" id="btn-reset">Neustart</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            question: "In welcher Situation darfst du sagen: „Что ты несёшь?“",
+            answers: [
+                { text: "A) Beim Vorstellungsgespräch mit dem zukünftigen Chef.", correct: false },
+                { text: "B) Beim Abendessen mit Freunden, wenn einer einen schlechten Scherz macht.", correct: true },
+                { text: "C) Im Supermarkt an der Kasse zu einer fremden Person.", correct: false }
+            ],
+            feedback: "Richtig! Da dieser Ausdruck sehr direkt, umgangssprachlich und emotional geladen ist, gehört er ausschließlich in den privaten Bereich unter Freunde oder Bekannte."
+        },
+        {
+            question: "Wann ist die höfliche Form „Что вы несёте?“ im Singular angebracht?",
+            answers: [
+                { text: "A) Wenn dein bester Freund dir einen Witz erzählt.", correct: false },
+                { text: "B) Wenn ein Kollege, mit dem du per Sie bist, in einem Meeting eine völlig unlogische Behauptung aufstellt.", correct: true },
+                { text: "C) Gegenüber einem kleinen Kind, das eine Ausrede erfindet.", correct: false }
+            ],
+            feedback: "Richtig! Das „вы“ wahrt die formelle Distanz (per Sie), drückt aber durch das Verb „несёте“ trotzdem deutliche Fassungslosigkeit über den Inhalt aus."
+        },
+        {
+            question: "Was bedeutet das Verb „нести“ im Satz „Что ты несёшь?“ laut der Anleitung?",
+            answers: [
+                { text: "A) Es wird wörtlich verwendet und bedeutet, dass jemand ein Paket trägt.", correct: false },
+                { text: "B) Es wird figürlich verwendet und bedeutet, dass jemand Unsinn oder seltsame Dinge redet.", correct: true },
+                { text: "C) Es bedeutet, dass jemand ein Geschenk mitbringt.", correct: false }
+            ],
+            feedback: "Exakt! Auch wenn „нести“ wörtlich „tragen“ heißt, bedeutet es in dieser Redewendung im übertragenen Sinne „Unsinn verbreiten / von sich geben“."
+        },
+        {
+            question: "Welcher Satz drückt im Russischen den Ursprung aus, von dem sich „Что ты несёшь?“ ableitet?",
+            answers: [
+                { text: "A) нести коробку (eine Kiste tragen)", correct: false },
+                { text: "B) нести сумку (eine Tasche tragen)", correct: false },
+                { text: "C) нести чушь (Unsinn/Quatsch erzählen)", correct: true }
+            ],
+            feedback: "Ausgezeichnet! „Что ты несёшь?“ ist die verkürzte, interaktive Form des Ausdrucks „нести чушь“ (oder „нести бред“)."
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const feedbackBox = document.getElementById('feedback-box');
+    const progressText = document.getElementById('progress-text');
+    const btnNext = document.getElementById('btn-next');
+    const btnReset = document.getElementById('btn-reset');
+
+    function startQuiz() {
+        currentQuestionIndex = 0;
+        score = 0;
+        btnReset.style.display = 'none';
+        document.getElementById('quiz-ui').style.display = 'block';
+        showQuestion();
+    }
+
+    function showQuestion() {
+        btnNext.style.display = 'none';
+        feedbackBox.style.display = 'none';
+        optionsContainer.innerHTML = '';
+        
+        const currentQuestion = quizData[currentQuestionIndex];
+        progressText.textContent = `Frage ${currentQuestionIndex + 1} von ${quizData.length}`;
+        questionText.textContent = currentQuestion.question;
+
+        currentQuestion.answers.forEach((answer, index) => {
+            const button = document.createElement('button');
+            button.className = 'option-btn';
+            button.textContent = answer.text;
+            button.addEventListener('click', () => selectAnswer(button, answer.correct, currentQuestion.feedback));
+            optionsContainer.appendChild(button);
+        });
+    }
+
+    function selectAnswer(selectedButton, isCorrect, feedbackText) {
+        const buttons = optionsContainer.querySelectorAll('.option-btn');
+        buttons.forEach(btn => btn.setAttribute('disabled', 'true'));
+
+        if (isCorrect) {
+            selectedButton.classList.add('correct');
+            score++;
+            feedbackBox.style.backgroundColor = '#e8f5e9';
+            feedbackBox.style.borderLeftColor = '#28a745';
+            feedbackBox.style.color = '#2e7d32';
+            feedbackBox.innerHTML = `<strong>Richtig!</strong> ${feedbackText}`;
+        } else {
+            selectedButton.classList.add('wrong');
+            feedbackBox.style.backgroundColor = '#fff3cd';
+            feedbackBox.style.borderLeftColor = '#ffc107';
+            feedbackBox.style.color = '#664d03';
+            feedbackBox.innerHTML = `<strong>Nicht ganz richtig.</strong> Die richtige Antwort ist hervorgehoben.`;
+            
+            // Richtige Option markieren
+            const currentQuestion = quizData[currentQuestionIndex];
+            const correctIndex = currentQuestion.answers.findIndex(a => a.correct);
+            buttons[correctIndex].classList.add('correct');
+        }
+
+        feedbackBox.style.display = 'block';
+
+        if (currentQuestionIndex < quizData.length - 1) {
+            btnNext.style.display = 'block';
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        setTimeout(() => {
+            document.getElementById('quiz-ui').style.display = 'none';
+            btnNext.style.display = 'none';
+            
+            // Ergebnis-Zusammenfassung einblenden
+            const resultDiv = document.createElement('div');
+            resultDiv.id = 'result-summary';
+            resultDiv.style.textAlign = 'center';
+            resultDiv.style.padding = '20px';
+            resultDiv.innerHTML = `
+                <div style="font-size: 3rem; margin-bottom: 10px;">🎉</div>
+                <h3>Quiz beendet!</h3>
+                <p style="font-size: 1.2rem;">Du hast <strong>${score}</strong> von <strong>${quizData.length}</strong> Fragen richtig beantwortet.</p>
+            `;
+            
+            const existingResult = document.getElementById('result-summary');
+            if(existingResult) existingResult.remove();
+            
+            optionsContainer.parentNode.insertBefore(resultDiv, optionsContainer);
+            btnReset.style.display = 'block';
+        }, 1500);
+    }
+
+    btnNext.addEventListener('click', () => {
+        currentQuestionIndex++;
+        showQuestion();
+    });
+
+    btnReset.addEventListener('click', () => {
+        const summary = document.getElementById('result-summary');
+        if(summary) summary.remove();
+        startQuiz();
+    });
+
+    // Start des Quiz beim Laden
+    startQuiz();
+</script>
+
+</body>
+</html>
