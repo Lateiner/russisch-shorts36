@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktive Russisch-Lernkartei</title>
+    <style>
+        :root {
+            --bg-color: #f0f7f4;
+            --primary-green: #2e7d32;
+            --light-green: #e8f5e9;
+            --accent-green: #4caf50;
+            --text-dark: #1b5e20;
+            --card-shadow: rgba(46, 125, 50, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 550px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        h1 {
+            color: var(--primary-green);
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* Fortschrittsanzeige */
+        .progress-container {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--primary-green);
+            background: var(--light-green);
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(46, 125, 50, 0.2);
+        }
+
+        /* 3D Flashcard Bühne */
+        .flashcard-stage {
+            width: 100%;
+            height: 280px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .flashcard-stage.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+
+        /* Vorder- und Rückseite */
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 25px;
+            border-radius: 16px;
+            background: white;
+            border: 2px solid rgba(46, 125, 50, 0.15);
+            box-shadow: 0 8px 24px var(--card-shadow);
+        }
+
+        .card-front {
+            color: var(--primary-green);
+        }
+
+        .card-back {
+            color: #2c3e50;
+            transform: rotateY(180deg);
+            background-color: var(--light-green);
+            border-color: rgba(46, 125, 50, 0.3);
+        }
+
+        /* Textstile auf den Karten */
+        .card-text {
+            font-size: clamp(1.4rem, 5vw, 2.2rem);
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+            max-width: 100%;
+        }
+
+        .card-note {
+            font-size: 0.95rem;
+            color: #666;
+            font-weight: normal;
+            font-style: italic;
+        }
+
+        .side-indicator {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #999;
+            font-weight: bold;
+        }
+
+        /* Steuerelemente / Buttons */
+        .controls-grid {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+            grid-column: span 2;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-green);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #1b5e20;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: var(--primary-green);
+            border: 2px solid var(--primary-green);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--light-green);
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        /* Info-Box für Desktop Tastaturbefehle */
+        .keyboard-info {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #777;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .key-badge {
+            background: #e0e0e0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            border-bottom: 2px solid #b5b5b5;
+        }
+
+        /* Responsive Anpassungen für Mobilgeräte */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            .flashcard-stage {
+                height: 240px;
+            }
+            .btn {
+                padding: 12px 16px;
+                font-size: 0.95rem;
+            }
+            .keyboard-info {
+                display: none; /* Tastatur-Tipps am Smartphone ausblenden */
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Vokabel-Lernkartei</h1>
+        <div class="subtitle">Thema: Redewendung „Что ты несёшь?“ &amp; Verben</div>
+    </header>
+
+    <!-- Fortschritt -->
+    <div class="progress-container" id="progress">1 / 50</div>
+
+    <!-- Flashcard Bühne -->
+    <div class="flashcard-stage" id="cardStage" onclick="flipCard()" role="button" tabIndex="0" aria-label="Karteikarte. Klicken zum Umdrehen.">
+        <div class="flashcard-inner">
+            <!-- Vorderseite (Russisch) -->
+            <div class="card-face card-front">
+                <span class="side-indicator">Russisch</span>
+                <div class="card-text" id="frontText">нести́</div>
+                <div class="card-note" id="frontNote">(NSV) / понести́ (SV)</div>
+            </div>
+            <!-- Rückseite (Deutsch) -->
+            <div class="card-face card-back">
+                <span class="side-indicator">Deutsch</span>
+                <div class="card-text" id="backText">tragen, bringen</div>
+                <div class="card-note" id="backNote"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigations- und Funktionsbuttons -->
+    <div class="controls-grid">
+        <div class="nav-buttons">
+            <button class="btn btn-primary" onclick="prevCard()">← Vorherige</button>
+            <button class="btn btn-primary" onclick="nextCard()">Nächste →</button>
+        </div>
+        <button class="btn btn-secondary" onclick="resetToStart()">An den Anfang</button>
+        <button class="btn btn-secondary" onclick="shuffleCards()">🔀 Mischen</button>
+    </div>
+
+    <!-- Steuerungshinweise für Desktop-User -->
+    <div class="keyboard-info">
+        Steuerung über die Tastatur möglich:<br>
+        <span class="key-badge">Leertaste</span> / <span class="key-badge">Enter</span>: Umdrehen &bull; 
+        <span class="key-badge">←</span> / <span class="key-badge">→</span>: Navigieren &bull; 
+        <span class="key-badge">Pos1 / Home</span>: Start
+    </div>
+</div>
+
+<script>
+    // Strukturierte Vokabeldaten basierend auf der bereinigten Liste
+    const originalVocabulary = [
+        { front: "нести́", back: "tragen, bringen", frontNote: "(NSV) / понести́ (SV)", backNote: "" },
+        { front: "что", back: "was", frontNote: "", backNote: "" },
+        { front: "ты", back: "du", frontNote: "", backNote: "" },
+        { front: "вы", back: "ihr, Sie", frontNote: "", backNote: "" },
+        { front: "он", back: "er", frontNote: "", backNote: "" },
+        { front: "она́", back: "sie", frontNote: "", backNote: "(Singular)" },
+        { front: "оно́", back: "es", frontNote: "", backNote: "" },
+        { front: "я", back: "ich", frontNote: "", backNote: "" },
+        { front: "мы", back: "wir", frontNote: "", backNote: "" },
+        { front: "они́", back: "sie", frontNote: "", backNote: "(Plural)" },
+        { front: "чушь", back: "Unsinn, Quatsch", frontNote: "", backNote: "" },
+        { front: "ерунда́", back: "Blödsinn, Kleinigkeit", frontNote: "", backNote: "" },
+        { front: "бред", back: "Faselei, Wahnsinn, Stuss", frontNote: "", backNote: "" },
+        { front: "говори́ть", back: "sagen, sprechen", frontNote: "(NSV) / сказа́ть (SV)", backNote: "" },
+        { front: "понима́ть", back: "verstehen", frontNote: "(NSV) / поня́ть (SV)", backNote: "" },
+        { front: "зна́ть", back: "wissen, erfahren", frontNote: "(NSV) / узна́ть (SV)", backNote: "" },
+        { front: "дума́ть", back: "denken", frontNote: "(NSV) / поду́мать (SV)", backNote: "" },
+        { front: "спра́шивать", back: "fragen", frontNote: "(NSV) / спроси́ть (SV)", backNote: "" },
+        { front: "отвеча́ть", back: "antworten", frontNote: "(NSV) / отве́тить (SV)", backNote: "" },
+        { front: "слу́шать", back: "hören, zuhören", frontNote: "(NSV) / послу́шать (SV)", backNote: "" },
+        { front: "слы́шать", back: "hören", frontNote: "(NSV) / услы́шать (SV)", backNote: "(akustisch)" },
+        { front: "ви́деть", back: "sehen", frontNote: "(NSV) / уви́деть (SV)", backNote: "" },
+        { front: "смотре́ть", back: "schauen, anschauen", frontNote: "(NSV) / посмотре́ть (SV)", backNote: "" },
+        { front: "разгова́ривать", back: "sich unterhalten, sprechen", frontNote: "(NSV)", backNote: "" },
+        { front: "обсужда́ть", back: "besprechen, diskutieren", frontNote: "(NSV) / обсуди́ть (SV)", backNote: "" },
+        { front: "смысл", back: "Sinn, Bedeutung", frontNote: "", backNote: "" },
+        { front: "значе́ние", back: "Bedeutung", frontNote: "", backNote: "" },
+        { front: "фра́за", back: "Phrase, Satz", frontNote: "", backNote: "" },
+        { front: "выраже́ние", back: "Ausdruck, Redewendung", frontNote: "", backNote: "" },
+        { front: "сло́во", back: "Wort", frontNote: "", backNote: "" },
+        { front: "язы́к", back: "Sprache, Zunge", frontNote: "", backNote: "" },
+        { front: "перево́д", back: "Übersetzung", frontNote: "", backNote: "" },
+        { front: "переводи́ть", back: "übersetzen", frontNote: "(NSV) / перевести́ (SV)", backNote: "" },
+        { front: "повторя́ть", back: "wiederholen", frontNote: "(NSV) / повтори́ть (SV)", backNote: "" },
+        { front: "прави́льно", back: "richtig, korrekt", frontNote: "", backNote: "" },
+        { front: "оши́бка", back: "Fehler", frontNote: "", backNote: "" },
+        { front: "интона́ция", back: "Intonation, Satzmelodie", frontNote: "", backNote: "" },
+        { front: "эмо́ция", back: "Emotion, Gefühl", frontNote: "", backNote: "" },
+        { front: "злость", back: "Wut, Ärger", frontNote: "", backNote: "" },
+        { front: "удивле́ние", back: "Überraschung, Verwunderung", frontNote: "", backNote: "" },
+        { front: "гро́мко", back: "laut", frontNote: "", backNote: "" },
+        { front: "ти́хо", back: "leise", frontNote: "", backNote: "" },
+        { front: "бы́стро", back: "schnell", frontNote: "", backNote: "" },
+        { front: "ме́дленно", back: "langsam", frontNote: "", backNote: "" },
+        { front: "разве́", back: "denn, etwa", frontNote: "", backNote: "(drückt Verwunderung aus)" },
+        { front: "неуже́ли", back: "wirklich, tatsächlich", frontNote: "", backNote: "(drückt Unglauben aus)" },
+        { front: "пря́мо", back: "direkt, geradezu", frontNote: "", backNote: "" },
+        { front: "вообще́", back: "überhaupt, im Allgemeinen", frontNote: "", backNote: "" },
+        { front: "совсе́м", back: "ganz, völlig", frontNote: "", backNote: "" },
+        { front: "про́сто", back: "einfach", frontNote: "", backNote: "" }
+    ];
+
+    // Aktiver Arbeitsstapel
+    let currentDeck = [...originalVocabulary];
+    let currentIndex = 0;
+
+    const cardStage = document.getElementById('cardStage');
+    const frontText = document.getElementById('frontText');
+    const frontNote = document.getElementById('frontNote');
+    const backText = document.getElementById('backText');
+    const backNote = document.getElementById('backNote');
+    const progress = document.getElementById('progress');
+
+    // Karte aktualisieren und darstellen
+    function updateCard() {
+        // Zustand immer zuerst auf Vorderseite zurücksetzen
+        cardStage.classList.remove('flipped');
+        
+        // Timeout sorgt dafür, dass der Text erst wechselt, wenn die Karte weggedreht ist
+        setTimeout(() => {
+            const card = currentDeck[currentIndex];
+            frontText.textContent = card.front;
+            frontNote.textContent = card.frontNote;
+            backText.textContent = card.back;
+            backNote.textContent = card.backNote;
+            
+            // Dynamische Skalierung bei langen Texten
+            adjustFontSize(frontText, card.front);
+            adjustFontSize(backText, card.back);
+
+            progress.textContent = `${currentIndex + 1} / ${currentDeck.length}`;
+        }, 150);
+    }
+
+    // Passt die Schriftgröße an die Textlänge an, um Umbrüche/Überlaufen zu verhindern
+    function adjustFontSize(element, text) {
+        if (text.length > 25) {
+            element.style.fontSize = "clamp(1.1rem, 4vw, 1.5rem)";
+        } else if (text.length > 15) {
+            element.style.fontSize = "clamp(1.3rem, 4.5vw, 1.8rem)";
+        } else {
+            element.style.fontSize = "clamp(1.4rem, 5vw, 2.2rem)";
+        }
+    }
+
+    // Karte drehen
+    function flipCard() {
+        cardStage.classList.toggle('flipped');
+    }
+
+    // Vorherige Karte
+    function prevCard() {
+        if (currentIndex > 0) {
+            currentIndex--;
+        } else {
+            currentIndex = currentDeck.length - 1; // Endlosschleife zum Ende
+        }
+        updateCard();
+    }
+
+    // Nächste Karte
+    function nextCard() {
+        if (currentIndex < currentDeck.length - 1) {
+            currentIndex++;
+        } else {
+            currentIndex = 0; // Endlosschleife zum Anfang
+        }
+        updateCard();
+    }
+
+    // Zurück zum Anfang
+    function resetToStart() {
+        currentIndex = 0;
+        updateCard();
+    }
+
+    // Karten mischen (Fisher-Yates Shuffle Algorithmus)
+    function shuffleCards() {
+        for (let i = currentDeck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [currentDeck[i], currentDeck[j]] = [currentDeck[j], currentDeck[i]];
+        }
+        currentIndex = 0;
+        updateCard();
+    }
+
+    // Globaler Eventlistener für Desktop-Tastatursteuerungen
+    document.addEventListener('keydown', (event) => {
+        // Verhindert das Standard-Scrollen des Browsers bei Leertaste und Pfeiltasten
+        if (["Space", "ArrowLeft", "ArrowRight", "Home"].includes(event.code)) {
+            if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                event.preventDefault();
+            }
+        }
+
+        switch (event.code) {
+            case 'Space':
+            case 'Enter':
+                flipCard();
+                break;
+            case 'ArrowLeft':
+                prevCard();
+                break;
+            case 'ArrowRight':
+                nextCard();
+                break;
+            case 'Home':
+                resetToStart();
+                break;
+        }
+    });
+
+    // Erster Setup-Aufruf beim Laden der Seite
+    updateCard();
+</script>
+
+</body>
+</html>
