@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch lernen: Dialog-Puzzle</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .badge {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        h2 {
+            color: #333;
+            font-size: 1.4rem;
+            margin: 0 0 10px 0;
+        }
+
+        p.instruction {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+
+        /* Liste für die Zeilen */
+        .puzzle-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .dialog-item {
+            background-color: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            font-size: 1.1rem;
+            color: #2c3e50;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            user-select: none;
+            touch-action: none; /* Verhindert das Scrollen der Seite beim Ziehen am Smartphone */
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        .dialog-item:active {
+            cursor: grabbing;
+        }
+
+        /* Drag-and-Drop Platzhalter oder Zustand */
+        .dialog-item.dragging {
+            opacity: 0.5;
+            background-color: #e0f7fa;
+            border-color: #00acc1;
+        }
+
+        /* Nummerierungs-Indikator links */
+        .item-number {
+            background-color: #e0e0e0;
+            color: #555;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+
+        .item-text {
+            flex-grow: 1;
+            line-height: 1.4;
+        }
+
+        /* Übersetzungen zart darunter */
+        .item-translation {
+            display: block;
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-top: 4px;
+        }
+
+        /* Feedback-Box */
+        .feedback-box {
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback-success {
+            background-color: #e8f5e9;
+            border-left: 4px solid #28a745;
+            color: #2e7d32;
+        }
+
+        .feedback-error {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            color: #664d03;
+        }
+
+        /* Kontrollen */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .btn-check { background-color: #007bff; }
+        .btn-check:hover { background-color: #0056b3; }
+
+        .btn-reset { background-color: #6c757d; }
+        .btn-reset:hover { background-color: #5a6268; }
+
+        /* Responsive Anpassungen */
+        @media (max-width: 480px) {
+            .container { padding: 20px; }
+            .dialog-item { padding: 12px; font-size: 0.95rem; }
+            .item-number { width: 26px; height: 26px; font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="badge">Dialog-Puzzle</div>
+    <h2>Bringe den Dialog in Ordnung</h2>
+    <p class="instruction">Die Zeilen dieses Mini-Dialogs sind durcheinandergeraten. Bringe sie per Drag-and-Drop oder Wischen in die richtige logische Reihenfolge (von oben nach unten).</p>
+
+    <div class="puzzle-list" id="puzzle-list">
+        <!-- Elemente werden per JS gemischt eingefügt -->
+    </div>
+
+    <div class="feedback-box" id="feedback-success" class="feedback-box feedback-success">
+        <strong>Perfekt gelöst! 🎉</strong> Der Dialog ergibt genau so Sinn: Erst kommt die absurde Behauptung, dann die fassungslose Reaktion mit unserer gelernten Redewendung und schließlich die Auflösung als Scherz.
+    </div>
+    
+    <div class="feedback-box" id="feedback-error" class="feedback-box feedback-error">
+        <strong>Noch nicht ganz richtig.</strong> Überlege logisch, welcher Satz die unlogische Behauptung ist und wie die Reaktion darauf lauten muss. Versuche es noch einmal!
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-check" id="btn-check">Überprüfen</button>
+        <button class="btn btn-reset" id="btn-reset">Mischen &amp; Neustart</button>
+    </div>
+</div>
+
+<script>
+    // Ursprüngliche Daten mit ID für die richtige Reihenfolge (0, 1, 2)
+    const dialogData = [
+        { id: "0", text: "Я думаю, что земля плоская!", trans: "Ich denke, die Erde ist flach!" },
+        { id: "1", text: "Что ты несёшь? Почему ты говоришь такие глупые вещи?", trans: "Was redest du da für einen Unsinn? Warum sagst du solche dummen Dinge?" },
+        { id: "2", text: "Извини, я просто пошутил.", trans: "Entschuldigung, ich habe nur Spaß gemacht." }
+    ];
+
+    const listContainer = document.getElementById('puzzle-list');
+    const fbSuccess = document.getElementById('feedback-success');
+    const fbError = document.getElementById('feedback-error');
+    const btnCheck = document.getElementById('btn-check');
+    const btnReset = document.getElementById('btn-reset');
+
+    function initPuzzle() {
+        fbSuccess.style.display = 'none';
+        fbError.style.display = 'none';
+        listContainer.innerHTML = '';
+
+        // Daten zufällig mischen
+        const shuffled = [...dialogData].sort(() => Math.random() - 0.5);
+
+        shuffled.forEach((item) => {
+            const row = document.createElement('div');
+            row.className = 'dialog-item';
+            row.setAttribute('draggable', 'true');
+            row.setAttribute('data-id', item.id);
+
+            row.innerHTML = `
+                <div class="item-number">?</div>
+                <div class="item-text">
+                    ${item.text}
+                    <span class="item-translation">${item.trans}</span>
+                </div>
+            `;
+            listContainer.appendChild(row);
+        });
+
+        addDragAndDropListeners();
+        updateNumbers();
+    }
+
+    function updateNumbers() {
+        const items = listContainer.querySelectorAll('.dialog-item');
+        items.forEach((item, index) => {
+            item.querySelector('.item-number').textContent = index + 1;
+        });
+    }
+
+    // --- DRAG, DROP & TOUCH LOGIK (Hybrid für Desktop und Mobile) ---
+    function addDragAndDropListeners() {
+        const items = listContainer.querySelectorAll('.dialog-item');
+
+        items.forEach(item => {
+            // Desktop Drag Events
+            item.addEventListener('dragstart', () => item.classList.add('dragging'));
+            item.addEventListener('dragend', () => {
+                item.classList.remove('dragging');
+                updateNumbers();
+            });
+
+            // Mobile Touch Events
+            item.addEventListener('touchstart', (e) => {
+                item.classList.add('dragging');
+            }, {passive: true});
+
+            item.addEventListener('touchend', () => {
+                item.classList.remove('dragging');
+                updateNumbers();
+            });
+        });
+
+        listContainer.addEventListener('dragover', handleMove);
+        listContainer.addEventListener('touchmove', handleMove, {passive: false});
+    }
+
+    function handleMove(e) {
+        e.preventDefault();
+        const draggingItem = listContainer.querySelector('.dragging');
+        if (!draggingItem) return;
+
+        // Ermitteln, wo sich der Zeiger/Finger aktuell befindet
+        const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+        const siblings = [...listContainer.querySelectorAll('.dialog-item:not(.dragging)')];
+
+        // Den nächsten Nachbarn finden, unter oder über dem wir uns befinden
+        const nextSibling = siblings.find(sibling => {
+            const box = sibling.getBoundingClientRect();
+            return clientY < box.top + box.height / 2;
+        });
+
+        // Element im DOM neu anordnen
+        listContainer.insertBefore(draggingItem, nextSibling);
+    }
+
+    // --- AUSWERTUNG ---
+    btnCheck.addEventListener('click', () => {
+        const currentItems = [...listContainer.querySelectorAll('.dialog-item')];
+        let isCorrect = true;
+
+        currentItems.forEach((item, index) => {
+            if (item.getAttribute('data-id') !== index.toString()) {
+                isCorrect = false;
+                item.style.borderColor = '#dc3545'; // Rot bei Fehlplatzierung
+            } else {
+                item.style.borderColor = '#28a745'; // Grün bei korrekter Position
+            }
+        });
+
+        if (isCorrect) {
+            fbSuccess.style.display = 'block';
+            fbError.style.display = 'none';
+        } else {
+            fbError.style.display = 'block';
+            fbSuccess.style.display = 'none';
+        }
+    });
+
+    btnReset.addEventListener('click', initPuzzle);
+
+    // Initialer Start
+    initPuzzle();
+</script>
+
+</body>
+</html>
