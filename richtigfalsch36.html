@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch lernen: Richtig oder Falsch?</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .badge {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        h2 {
+            color: #333;
+            font-size: 1.4rem;
+            margin: 0 0 10px 0;
+        }
+
+        p.instruction {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+
+        /* Karten für die einzelnen Aussagen */
+        .statement-card {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .statement-text {
+            font-size: 1.1rem;
+            line-height: 1.5;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        /* Button-Gruppe für Richtig / Falsch */
+        .choice-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-choice {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ccc;
+            background-color: white;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        /* Hover-Effekte vor der Auswahl */
+        .btn-choice.btn-true:hover:not([disabled]) {
+            border-color: #28a745;
+            color: #28a745;
+            background-color: #f1f9f3;
+        }
+
+        .btn-choice.btn-false:hover:not([disabled]) {
+            border-color: #dc3545;
+            color: #dc3545;
+            background-color: #fdf2f3;
+        }
+
+        /* Aktive visuelle Zustände nach Klick */
+        .btn-choice.selected-correct {
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+            color: white !important;
+        }
+
+        .btn-choice.selected-wrong {
+            background-color: #dc3545 !important;
+            border-color: #dc3545 !important;
+            color: white !important;
+        }
+
+        /* Ausgegraute Buttons für den inaktiven Part */
+        .btn-choice:disabled:not(.selected-correct):not(.selected-wrong) {
+            opacity: 0.4;
+            cursor: not-allowed;
+            border-color: #ddd;
+            color: #aaa;
+        }
+
+        /* Feedback-Bereich */
+        .feedback-box {
+            background-color: #e8f5e9;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 25px;
+            font-size: 0.95rem;
+            color: #2e7d32;
+            display: none;
+            line-height: 1.4;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .btn-reset {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: none;
+            font-weight: bold;
+        }
+
+        .btn-reset:hover {
+            background-color: #5a6268;
+        }
+
+        /* Responsive Anpassung für sehr kleine Bildschirme */
+        @media (max-width: 400px) {
+            .container { padding: 20px; }
+            .statement-text { font-size: 1rem; }
+            .choice-group { flex-direction: column; gap: 8px; }
+            .btn-choice { padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="badge">Hör- &amp; Leseverstehen</div>
+    <h2>Richtig oder Falsch?</h2>
+    <p class="instruction">Bewerte die beiden Aussagen basierend auf den Informationen aus dem Video.</p>
+
+    <!-- Aussage 1 -->
+    <div class="statement-card" id="card-1">
+        <div class="statement-text">Aussage 1: Das Verb „нести“ bedeutet hier, dass man physisch etwas transportiert.</div>
+        <div class="choice-group">
+            <button class="btn-choice btn-true" onclick="checkAnswer(1, true, false)">Richtig</button>
+            <button class="btn-choice btn-false" onclick="checkAnswer(1, false, false)">Falsch</button>
+        </div>
+    </div>
+
+    <!-- Aussage 2 -->
+    <div class="statement-card" id="card-2">
+        <div class="statement-text">Aussage 2: Die Redewendung drückt oft aus, dass man mit der Meinung des anderen nicht einverstanden ist.</div>
+        <div class="choice-group">
+            <button class="btn-choice btn-true" onclick="checkAnswer(2, true, true)">Richtig</button>
+            <button class="btn-choice btn-false" onclick="checkAnswer(2, false, true)">Falsch</button>
+        </div>
+    </div>
+
+    <div class="feedback-box" id="feedback">
+        <strong>Auswertung abgeschlossen!</strong> 
+        <br><br>
+        <em>Zur Erinnerung:</em> Das Verb „нести“ (tragen) wird hier rein figürlich im Sinne von „Unsinn von sich geben“ verwendet. Man nutzt es genau dann, wenn man mit den wirren oder dummen Aussagen des Gegenübers absolut nicht übereinstimmt.
+    </div>
+
+    <div class="controls">
+        <button class="btn-reset" id="btn-reset" onclick="resetGame()">Neustart</button>
+    </div>
+</div>
+
+<script>
+    let answeredCount = 0;
+
+    function checkAnswer(statementNum, userChoice, correctChoice) {
+        const card = document.getElementById(`card-${statementNum}`);
+        const buttons = card.querySelectorAll('.btn-choice');
+        
+        // Buttons dieser Karte einfrieren
+        buttons.forEach(btn => btn.setAttribute('disabled', 'true'));
+
+        // Bestimmen welcher Button geklickt wurde (true oder false)
+        const clickedBtn = userChoice ? card.querySelector('.btn-true') : card.querySelector('.btn-false');
+
+        if (userChoice === correctChoice) {
+            clickedBtn.classList.add('selected-correct');
+        } else {
+            clickedBtn.classList.add('selected-wrong');
+            // Richtigen Button trotzdem hervorheben
+            const correctBtn = correctChoice ? card.querySelector('.btn-true') : card.querySelector('.btn-false');
+            correctBtn.classList.add('selected-correct');
+        }
+
+        answeredCount++;
+
+        // Wenn beide Aufgaben gelöst wurden, zeige Feedback und Reset an
+        if (answeredCount === 2) {
+            document.getElementById('feedback').style.display = 'block';
+            document.getElementById('btn-reset').style.display = 'block';
+        }
+    }
+
+    function resetGame() {
+        answeredCount = 0;
+        document.getElementById('feedback').style.display = 'none';
+        document.getElementById('btn-reset').style.display = 'none';
+
+        for (let i = 1; i <= 2; i++) {
+            const card = document.getElementById(`card-${i}`);
+            const buttons = card.querySelectorAll('.btn-choice');
+            buttons.forEach(btn => {
+                btn.removeAttribute('disabled');
+                btn.classList.remove('selected-correct', 'selected-wrong');
+            });
+        }
+    }
+</script>
+
+</body>
+</html>
