@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch lernen: Grammatik-Fokus</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .badge {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        h2 {
+            color: #333;
+            font-size: 1.4rem;
+            margin: 0 0 10px 0;
+        }
+
+        p.instruction {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+
+        .exercise-box {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .grammar-row {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sub-task {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sub-task label {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 1rem;
+        }
+
+        /* Russischer Lückentext-Bereich */
+        .sentence-line {
+            font-size: 1.4rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding: 10px 0;
+        }
+
+        .luecke {
+            display: inline-block;
+            min-width: 70px;
+            height: 38px;
+            border-bottom: 3px dashed #007bff;
+            text-align: center;
+            color: #007bff;
+            font-weight: bold;
+            line-height: 34px;
+            transition: all 0.2s;
+        }
+
+        .luecke.filled {
+            border-bottom-style: solid;
+            background-color: #e3f2fd;
+            border-radius: 4px;
+            padding: 0 10px;
+        }
+
+        /* Bausteine zum Anklicken */
+        .tiles-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .tile-btn {
+            background-color: white;
+            border: 2px solid #007bff;
+            color: #007bff;
+            padding: 8px 16px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tile-btn:hover:not([disabled]) {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .tile-btn:disabled {
+            opacity: 0.4;
+            border-color: #ccc;
+            color: #aaa;
+            cursor: not-allowed;
+        }
+
+        /* Input Feld für die deutsche Übersetzung */
+        .translation-input {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1rem;
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .translation-input:focus {
+            border-color: #007bff;
+        }
+
+        /* Validierungs-Klassen */
+        .input-correct {
+            border-color: #28a745 !important;
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .input-wrong {
+            border-color: #dc3545 !important;
+            background-color: #f8f7f7;
+        }
+
+        .luecke.correct { border-bottom-color: #28a745; color: #28a745; background-color: #e8f5e9; }
+        .luecke.wrong { border-bottom-color: #dc3545; color: #dc3545; background-color: #fdf2f3; }
+
+        /* Feedback-Box */
+        .feedback-box {
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .btn-check { background-color: #007bff; }
+        .btn-check:hover { background-color: #0056b3; }
+
+        .btn-reset { background-color: #6c757d; display: none; }
+        .btn-reset:hover { background-color: #5a6268; }
+
+        /* Responsive Anpassungen */
+        @media (max-width: 480px) {
+            .container { padding: 20px; }
+            .exercise-box { padding: 15px; }
+            .sentence-line { font-size: 1.2rem; }
+            .luecke { height: 32px; line-height: 28px; min-width: 60px; }
+            .tile-btn { padding: 6px 12px; font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="badge">10. Grammatik-Fokus</div>
+    <h2>Konjugation &amp; Bedeutung</h2>
+    <p class="instruction">Überprüfe dein Wissen zum Verb <strong>нести</strong> (tragen / Unsinn reden). Vervollständige die russische Du-Form per Klick und tippe die deutsche Übersetzung ein.</p>
+
+    <div class="exercise-box">
+        <div class="grammar-row">
+            
+            <div class="sub-task">
+                <label>1. Welche Endung nutzt die Du-Form (ты) im Russischen?</label>
+                <div class="sentence-line">
+                    <span>Ты нес</span><span class="luecke" id="luecke-target">???</span>
+                </div>
+                <div class="tiles-container">
+                    <button class="tile-btn" onclick="selectTile('ёшь')">ёшь</button>
+                    <button class="tile-btn" onclick="selectTile('ет')">ет</button>
+                    <button class="tile-btn" onclick="selectTile('ут')">ут</button>
+                </div>
+            </div>
+
+            <div class="sub-task">
+                <label for="translation-field">2. Was bedeutet diese Form wörtlich übersetzt auf Deutsch?</label>
+                <input type="text" class="translation-input" id="translation-field" placeholder="z.B. ich trage, du...?" autocomplete="off">
+            </div>
+
+        </div>
+    </div>
+
+    <div class="feedback-box" id="feedback">
+        </div>
+
+    <div class="controls">
+        <button class="btn btn-check" id="btn-check" onclick="checkAnswers()">Überprüfen</button>
+        <button class="btn btn-reset" id="btn-reset" onclick="resetExercise()">Neustart</button>
+    </div>
+</div>
+
+<script>
+    let selectedEnding = "";
+    const correctAnswerEnding = "ёшь";
+    
+    // Akzeptiert verschiedene valide Schreibweisen (Groß-/Kleinschreibung & optionale Leerzeichen werden per JS abgefangen)
+    const validTranslations = ["duträgst", "dutraegst"]; 
+
+    function selectTile(ending) {
+        selectedEnding = ending;
+        const target = document.getElementById('luecke-target');
+        target.textContent = ending;
+        target.classList.add('filled');
+        target.classList.remove('correct', 'wrong');
+    }
+
+    function checkAnswers() {
+        const target = document.getElementById('luecke-target');
+        const inputField = document.getElementById('translation-field');
+        const feedback = document.getElementById('feedback');
+        const btnCheck = document.getElementById('btn-check');
+        const btnReset = document.getElementById('btn-reset');
+        const tileButtons = document.querySelectorAll('.tile-btn');
+
+        // Eingabe säubern für fehlerfreien Abgleich (Kleinschreibung, ohne Leerzeichen)
+        const userTranslation = inputField.value.trim().toLowerCase().replace(/\s+/g, '');
+
+        let isEndingCorrect = (selectedEnding === correctAnswerEnding);
+        let isTranslationCorrect = validTranslations.includes(userTranslation);
+
+        // Visuelle Auswertung: Russische Endung
+        if (selectedEnding === "") {
+            alert("Bitte wähle zuerst eine russische Endung aus!");
+            return;
+        }
+
+        tileButtons.forEach(btn => btn.setAttribute('disabled', 'true'));
+        inputField.setAttribute('disabled', 'true');
+
+        if (isEndingCorrect) {
+            target.className = "luecke filled correct";
+        } else {
+            target.className = "luecke filled wrong";
+        }
+
+        // Visuelle Auswertung: Deutsche Übersetzung
+        if (isTranslationCorrect) {
+            inputField.className = "translation-input input-correct";
+        } else {
+            inputField.className = "translation-input input-wrong";
+        }
+
+        // Feedback-Text generieren
+        feedback.style.display = "block";
+        if (isEndingCorrect && isTranslationCorrect) {
+            feedback.style.backgroundColor = "#e8f5e9";
+            feedback.style.borderLeft = "4px solid #28a745";
+            feedback.style.color = "#2e7d32";
+            feedback.innerHTML = `<strong>Perfekt gelöst! 🎉</strong><br>Die korrekte Form heißt <strong>Ты несёшь</strong> und bedeutet wörtlich übersetzt <strong>„du trägst“</strong>. Genau daraus leitet sich die Redewendung ab.`;
+        } else {
+            feedback.style.backgroundColor = "#fff3cd";
+            feedback.style.borderLeft = "4px solid #ffc107";
+            feedback.style.color = "#664d03";
+            
+            let errorText = "<strong>Noch nicht ganz richtig.</strong><br>";
+            if (!isEndingCorrect) errorText += "• Die russische Endung ist falsch. Das Verb verhält sich in der Du-Form wie viele e-Konjugationen mit Betonung auf der Endung (ё).<br>";
+            if (!isTranslationCorrect) errorText += "• Die deutsche Übersetzung stimmt nicht ganz. Gesucht war die 2. Person Singular von 'tragen' (<em>du trägst</em>).<br>";
+            errorText += "Klicke auf Neustart, um es noch einmal zu versuchen.";
+            
+            feedback.innerHTML = errorText;
+        }
+
+        btnCheck.style.display = "none";
+        btnReset.style.display = "block";
+    }
+
+    function resetExercise() {
+        selectedEnding = "";
+        const target = document.getElementById('luecke-target');
+        const inputField = document.getElementById('translation-field');
+        const feedback = document.getElementById('feedback');
+        const btnCheck = document.getElementById('btn-check');
+        const btnReset = document.getElementById('btn-reset');
+        const tileButtons = document.querySelectorAll('.tile-btn');
+
+        target.textContent = "???";
+        target.className = "luecke";
+
+        inputField.removeAttribute('disabled');
+        inputField.value = "";
+        inputField.className = "translation-input";
+
+        tileButtons.forEach(btn => btn.removeAttribute('disabled'));
+
+        feedback.style.display = "none";
+        btnCheck.style.display = "block";
+        btnReset.style.display = "none";
+    }
+</script>
+
+</body>
+</html>
